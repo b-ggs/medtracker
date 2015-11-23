@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.medtracker.medtracker" >
+
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".EditMedicineActivity"
+            android:label="@string/title_activity_edit_medicine" >
+        </activity>
+        <activity
+            android:name=".ManageMedicinesActivity"
+            android:label="@string/title_activity_manage_medicines" >
+        </activity>
+        <activity
+            android:name=".CalendarViewActivity"
+            android:label="@string/title_activity_calendar_view" >
+        </activity>
+        <activity
+            android:name=".CallPharmacistActivity"
+            android:label="@string/title_activity_call_pharmacist" >
+        </activity>
+    </application>
+
+</manifest>

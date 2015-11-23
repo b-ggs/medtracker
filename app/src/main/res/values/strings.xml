@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">MedTracker</string>
+
+    <string name="title_activity_edit_medicine">Medicine Information</string>
+    <string name="title_activity_manage_medicines">Manage Medicines</string>
+    <string name="title_activity_calendar_view">Calendar View</string>
+    <string name="title_activity_call_pharmacist">Call a Pharmacist</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+</resources>
