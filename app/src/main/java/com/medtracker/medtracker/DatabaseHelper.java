@@ -17,7 +17,7 @@ import java.util.Date;
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TAG = "DatabaseHelper";
 
-    public static final int DATABASE_VERSION = 4;
+    public static final int DATABASE_VERSION = 6;
     public static final String DATABASE_NAME = "MedTracker.db";
 
     public static final String MEDICINE_TABLE = "medicine";
@@ -37,6 +37,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATE_COLUMN_DATE_ONLY = "dateOnly";
     public static final String DATE_COLUMN_MEDICINE_ID= "medicineId";
 
+    public static final String PENDING_INTENT_TABLE = "pending_intents";
+    public static final String PENDING_INTENT_COLUMN_ID = "id";
+    public static final String PENDING_INTENT_COLUMN_REQUEST_CODE = "requestCode";
+    public static final String PENDING_INTENT_COLUMN_DATE_ID = "dateId";
+    public static final String PENDING_INTENT_COLUMN_MEDICINE_ID = "medicineId";
+
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -46,6 +52,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Log.d(TAG, String.format("Database create version %s.", DATABASE_VERSION));
         initializeMedicineTable(db);
         initializeDateTable(db);
+        initializePendingIntentTable(db);
     }
 
     @Override
@@ -53,6 +60,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Log.d(TAG, String.format("Database upgrade from %s to %s.", oldVersion, newVersion));
         dropMedicineTable(db);
         dropDateTable(db);
+        dropPendingIntentTable(db);
         onCreate(db);
     }
 
@@ -87,12 +95,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(sql.toString());
     }
 
+    public void initializePendingIntentTable(SQLiteDatabase db) {
+        StringBuilder sql = new StringBuilder();
+        sql.append(String.format("CREATE TABLE %s ", PENDING_INTENT_TABLE));
+        sql.append("(");
+        sql.append(String.format("%s %s, ", PENDING_INTENT_COLUMN_ID, "INTEGER PRIMARY KEY"));
+        sql.append(String.format("%s %s, ", PENDING_INTENT_COLUMN_REQUEST_CODE, "TEXT"));
+        sql.append(String.format("%s %s, ", PENDING_INTENT_COLUMN_MEDICINE_ID, "TEXT"));
+        sql.append(String.format("%s %s ", PENDING_INTENT_COLUMN_DATE_ID, "TEXT"));
+        sql.append(")");
+        Log.d(TAG, String.format("Exec: %s", sql.toString()));
+        db.execSQL(sql.toString());
+    }
+
     public void dropMedicineTable(SQLiteDatabase db) {
         db.execSQL(String.format("DROP TABLE IF EXISTS %s", MEDICINE_TABLE));
     }
 
     public void dropDateTable(SQLiteDatabase db) {
         db.execSQL(String.format("DROP TABLE IF EXISTS %s", DATE_TABLE));
+    }
+
+    public void dropPendingIntentTable(SQLiteDatabase db) {
+        db.execSQL(String.format("DROP TABLE IF EXISTS %s", PENDING_INTENT_TABLE));
     }
 
     public void addMedicine(MedicineObject medicineObject) {
@@ -138,6 +163,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(DATE_COLUMN_MEDICINE_ID, medicineId);
 
         db.insert(DATE_TABLE, null, values);
+        db.close();
+    }
+
+    public void addPendingIntent(PendingIntentObject pendingIntentObject) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        int id = pendingIntentObject.getId();
+        String requestCode = String.valueOf(pendingIntentObject.getRequestCode());
+        String dateId = String.valueOf(pendingIntentObject.getDateId());
+        String medicineId = String.valueOf(pendingIntentObject.getMedicineId());
+
+        values.put(PENDING_INTENT_COLUMN_ID, id);
+        values.put(PENDING_INTENT_COLUMN_REQUEST_CODE, requestCode);
+        values.put(PENDING_INTENT_COLUMN_DATE_ID, dateId);
+        values.put(PENDING_INTENT_COLUMN_MEDICINE_ID, medicineId);
+
+        db.insert(PENDING_INTENT_TABLE, null, values);
         db.close();
     }
 
@@ -274,6 +317,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return dateObjects;
     }
 
+    public ArrayList<DateObject> getDatesFromMedicineId(int medicineIdQuery) {
+        SQLiteDatabase db = getReadableDatabase();
+        ArrayList<DateObject> dateObjects = new ArrayList<>();
+
+        db.rawQuery(String.format("SELECT * FROM %s ", DATE_TABLE), null);
+
+        Cursor cursor = db.query(DATE_TABLE,
+                new String[]{
+                        DATE_COLUMN_ID,
+                        DATE_COLUMN_MILLIS,
+                        DATE_COLUMN_DATE_ONLY,
+                        DATE_COLUMN_MEDICINE_ID
+                },
+                String.format("%s=?", DATE_COLUMN_MEDICINE_ID), // id = ?
+                new String[] { String.valueOf(medicineIdQuery) },
+                null,
+                null,
+                null
+        );
+
+        if(cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex(DATE_COLUMN_ID));
+                long millis = Long.valueOf(cursor.getString(cursor.getColumnIndex(DATE_COLUMN_MILLIS)));
+                int medicineId = Integer.valueOf(cursor.getString(cursor.getColumnIndex(DATE_COLUMN_MEDICINE_ID)));
+
+                DateObject dateObject = new DateObject(id, millis, medicineId);
+                dateObjects.add(dateObject);
+            } while(cursor.moveToNext());
+        }
+
+        db.close();
+        cursor.close();
+
+        return dateObjects;
+    }
+
     public ArrayList<DateObject> getDatesFromDateOnly(Date date) {
         SQLiteDatabase db = getReadableDatabase();
         ArrayList<DateObject> dateObjects = new ArrayList<>();
@@ -311,6 +391,82 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return dateObjects;
     }
 
+    public ArrayList<PendingIntentObject> getPendingIntents() {
+        SQLiteDatabase db = getReadableDatabase();
+        ArrayList<PendingIntentObject> pendingIntentObjects = new ArrayList<>();
+
+        db.rawQuery(String.format("SELECT * FROM %s ", PENDING_INTENT_TABLE), null);
+
+        Cursor cursor = db.query(PENDING_INTENT_TABLE,
+                new String[]{
+                        PENDING_INTENT_COLUMN_ID,
+                        PENDING_INTENT_COLUMN_REQUEST_CODE,
+                        PENDING_INTENT_COLUMN_DATE_ID,
+                        PENDING_INTENT_COLUMN_MEDICINE_ID
+                },
+                null, // id = ?
+                null,
+                null,
+                null,
+                null
+        );
+
+        if(cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex(PENDING_INTENT_COLUMN_ID));
+                int requestCode = Integer.valueOf(cursor.getString(cursor.getColumnIndex(PENDING_INTENT_COLUMN_REQUEST_CODE)));
+                int dateId = Integer.valueOf(cursor.getString(cursor.getColumnIndex(PENDING_INTENT_COLUMN_DATE_ID)));
+                int medicineId = Integer.valueOf(cursor.getString(cursor.getColumnIndex(PENDING_INTENT_COLUMN_MEDICINE_ID)));
+
+                PendingIntentObject pendingIntentObject = new PendingIntentObject(id, requestCode, dateId, medicineId);
+                pendingIntentObjects.add(pendingIntentObject);
+            } while(cursor.moveToNext());
+        }
+
+        db.close();
+        cursor.close();
+
+        return pendingIntentObjects;
+    }
+
+    public ArrayList<PendingIntentObject> getPendingIntentsFromMedicineId(int medicineIdQuery) {
+        SQLiteDatabase db = getReadableDatabase();
+        ArrayList<PendingIntentObject> pendingIntentObjects = new ArrayList<>();
+
+        db.rawQuery(String.format("SELECT * FROM %s ", PENDING_INTENT_TABLE), null);
+
+        Cursor cursor = db.query(PENDING_INTENT_TABLE,
+                new String[]{
+                        PENDING_INTENT_COLUMN_ID,
+                        PENDING_INTENT_COLUMN_REQUEST_CODE,
+                        PENDING_INTENT_COLUMN_DATE_ID,
+                        PENDING_INTENT_COLUMN_MEDICINE_ID
+                },
+                String.format("%s=?", PENDING_INTENT_COLUMN_MEDICINE_ID), // id = ?
+                new String[] { String.valueOf(medicineIdQuery) },
+                null,
+                null,
+                null
+        );
+
+        if(cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex(PENDING_INTENT_COLUMN_ID));
+                int requestCode = Integer.valueOf(cursor.getString(cursor.getColumnIndex(PENDING_INTENT_COLUMN_REQUEST_CODE)));
+                int dateId = Integer.valueOf(cursor.getString(cursor.getColumnIndex(PENDING_INTENT_COLUMN_DATE_ID)));
+                int medicineId = Integer.valueOf(cursor.getString(cursor.getColumnIndex(PENDING_INTENT_COLUMN_MEDICINE_ID)));
+
+                PendingIntentObject pendingIntentObject = new PendingIntentObject(id, requestCode, dateId, medicineId);
+                pendingIntentObjects.add(pendingIntentObject);
+            } while(cursor.moveToNext());
+        }
+
+        db.close();
+        cursor.close();
+
+        return pendingIntentObjects;
+    }
+
     public void removeMedicine(int id) {
         SQLiteDatabase db = getWritableDatabase();
         db.delete(MEDICINE_TABLE, MEDICINE_COLUMN_ID + " =? ", new String[]{String.valueOf(id)});
@@ -320,6 +476,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void removeDatesFromMedicineId(int medicineId) {
         SQLiteDatabase db = getWritableDatabase();
         db.delete(DATE_TABLE, DATE_COLUMN_MEDICINE_ID + " =? ", new String[]{String.valueOf(medicineId)});
+        db.close();
+    }
+
+    public void removePendingIntentsFromMedicineId(int medicineId) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete(PENDING_INTENT_TABLE, PENDING_INTENT_COLUMN_MEDICINE_ID + " =? ", new String[]{String.valueOf(medicineId)});
         db.close();
     }
 }

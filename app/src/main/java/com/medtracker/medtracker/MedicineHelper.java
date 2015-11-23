@@ -1,9 +1,7 @@
 package com.medtracker.medtracker;
 
 import android.content.Context;
-import android.provider.ContactsContract;
 
-import java.net.ConnectException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -102,6 +100,7 @@ public class MedicineHelper {
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
         databaseHelper.addMedicine(medicineObject);
         DateHelper.generateDates(context, medicineObject);
+        AlarmHelper.setAlarms(context, DateHelper.getDatesFromMedicineId(context, medicineObject.getId()));
     }
 
     public static MedicineObject getMedicine(Context context, int id) {
@@ -128,6 +127,7 @@ public class MedicineHelper {
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
         databaseHelper.removeMedicine(id);
         DateHelper.removeDatesFromMedicineId(context, id);
+        AlarmHelper.cancelAlarmFromMedicineId(context, id);
     }
 
     public static ArrayList<MedicineObject> getAllMedicineFromDateObjects(Context context, ArrayList<DateObject> dateObjects) {

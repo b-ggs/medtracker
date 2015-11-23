@@ -3,6 +3,8 @@
     package="com.medtracker.medtracker" >
 
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:allowBackup="true"
@@ -34,6 +36,13 @@
             android:name=".CallPharmacistActivity"
             android:label="@string/title_activity_call_pharmacist" >
         </activity>
-    </application>
 
+        <receiver android:name=".AlarmReceiver" />
+        <receiver android:name=".RebootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>

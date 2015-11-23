@@ -134,4 +134,9 @@ public class DateHelper {
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
         return databaseHelper.getDatesFromDateOnly(date);
     }
+
+    public static ArrayList<DateObject> getDatesFromMedicineId(Context context, int medicineId) {
+        DatabaseHelper databaseHelper = new DatabaseHelper(context);
+        return databaseHelper.getDatesFromMedicineId(medicineId);
+    }
 }
