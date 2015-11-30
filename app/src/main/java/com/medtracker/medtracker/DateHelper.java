@@ -20,12 +20,12 @@ public class DateHelper {
     public static void generateDates(Context context, MedicineObject medicineObject) {
         ArrayList<Calendar> finalDateTimes = new ArrayList<>();
 
-        int numberDaysTake = medicineObject.getNumberDaysTake();
         ArrayList<String> daysToTake = medicineObject.getDaysToTake();
-        Calendar startDate = medicineObject.getStartDate();
+        Date startDate = medicineObject.getStartDate();
+        Date endDate = medicineObject.getEndDate();
         ArrayList<Calendar> times = medicineObject.getTimes();
 
-        ArrayList<Date> datesRaw = DateHelper.getDates(numberDaysTake, daysToTake, startDate);
+        ArrayList<Date> datesRaw = DateHelper.getDates(daysToTake, startDate, endDate);
 
         DateFormat dateFormat = DateFormat.getDateTimeInstance();
 
@@ -52,20 +52,19 @@ public class DateHelper {
         }
     }
 
-    public static ArrayList<Date> getDates(int numberDaysTake, ArrayList<String> daysToTake, Calendar startDate) {
+    public static ArrayList<Date> getDates(ArrayList<String> daysToTake, Date startDate, Date endDate) {
         ArrayList<Date> dates = new ArrayList<>();
         ArrayList<Integer> daysToTakeConstant = DateHelper.formatDaysToTakeToConstant(daysToTake);
 
         Calendar currentCalendar = Calendar.getInstance();
-        currentCalendar.setTimeInMillis(startDate.getTimeInMillis());
+        currentCalendar.setTimeInMillis(startDate.getTime());
 
-        DateFormat dateFormat = DateFormat.getDateInstance();
+        Calendar endCalendar = Calendar.getInstance();
+        endCalendar.setTimeInMillis(endDate.getTime());
 
-        int counter = 1;
-        while(counter <= numberDaysTake) {
+        while(currentCalendar.getTimeInMillis() <= endCalendar.getTimeInMillis()) {
             if(daysToTakeConstant.contains(currentCalendar.get(Calendar.DAY_OF_WEEK))) {
                 dates.add(currentCalendar.getTime());
-                counter++;
             }
             currentCalendar.add(Calendar.DAY_OF_MONTH, 1);
         }

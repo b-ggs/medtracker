@@ -5,6 +5,7 @@ import android.content.Context;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Created by boggs on 11/22/15.
@@ -47,14 +48,33 @@ public class MedicineHelper {
     }
 
     public static String formatStartDateForDatabase(MedicineObject medicineObject) {
-        Calendar calendar = medicineObject.getStartDate();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(medicineObject.getStartDate());
         return String.valueOf(calendar.getTimeInMillis());
     }
 
-    public static Calendar formatStartDateForObject(String string) {
+    public static String formatEndDateForDatabase(MedicineObject medicineObject) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(medicineObject.getEndDate());
+        return String.valueOf(calendar.getTimeInMillis());
+    }
+
+    public static String formatStartTimeForDatabase(MedicineObject medicineObject) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(medicineObject.getStartTime());
+        return String.valueOf(calendar.getTimeInMillis());
+    }
+
+    public static Date formatStartDateForObject(String string) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(Long.valueOf(string));
-        return calendar;
+        return calendar.getTime();
+    }
+
+    public static Date formatEndDateForObject(String string) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(Long.valueOf(string));
+        return calendar.getTime();
     }
 
     public static String formatDaysToTakeForDatabase(MedicineObject medicineObject) {

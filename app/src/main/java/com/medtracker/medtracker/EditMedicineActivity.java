@@ -2,6 +2,8 @@ package com.medtracker.medtracker;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,6 +21,7 @@ import com.android.datetimepicker.time.TimePickerDialog;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 public class EditMedicineActivity extends AppCompatActivity {
@@ -27,12 +30,13 @@ public class EditMedicineActivity extends AppCompatActivity {
     private int EDITING = 0;
 
     ArrayList<Calendar> times;
-    Calendar startDate;
+    Date startTime;
+    Date startDate, endDate;
 
-    Button addTimeButton, resetTimeButton, setDateButton, setDateTodayButton, saveButton;
-    TextView timesTextView, dateTextView, idTextView;
+    Button setDateStartButton, setDateStartTodayButton, setDateEndButton, setDateEndTodayButton, setStartTimeButton, setTimeNowButton;
+    TextView timesTextView, dateStartTextView, dateEndTextView, idTextView, startTimeTextView;
 
-    EditText nameEditText, amountEditText, unitEditText, notesEditText, numberDaysEditText;
+    EditText nameEditText, amountEditText, unitEditText, notesEditText, occurrencesEditText;
 
     ToggleButton suToggle, moToggle, tuToggle, weToggle, thToggle, frToggle, saToggle;
     HashMap<String, ToggleButton> daysToTakeToggles;
@@ -43,26 +47,35 @@ public class EditMedicineActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit_medicine);
 
         times = new ArrayList<>();
-        startDate = null;
 
-        addTimeButton = (Button) findViewById(R.id.addTimeButton);
-        addTimeButton.setOnClickListener(addTimeListener);
-        resetTimeButton = (Button) findViewById(R.id.resetTimeButton);
-        resetTimeButton.setOnClickListener(resetTimeListener);
+//        addTimeButton = (Button) findViewById(R.id.addTimeButton);
+//        resetTimeButton = (Button) findViewById(R.id.resetTimeButton);
+//        resetTimeButton.setOnClickListener(resetTimeListener);
+        setStartTimeButton = (Button) findViewById(R.id.setStartTimeButton);
+        setStartTimeButton.setOnClickListener(setStartTimeListener);
+
         timesTextView = (TextView) findViewById(R.id.timesTextView);
 
-        setDateButton = (Button) findViewById(R.id.setDateButton);
-        setDateButton.setOnClickListener(setDateListener);
-        setDateTodayButton = (Button) findViewById(R.id.setDateTodayButton);
-        setDateTodayButton.setOnClickListener(setDateTodayListener);
-        dateTextView = (TextView) findViewById(R.id.dateTextView);
+        setDateStartButton = (Button) findViewById(R.id.setDateStartButton);
+        setDateStartButton.setOnClickListener(setDateStartListener);
+        setDateStartTodayButton = (Button) findViewById(R.id.setDateStartTodayButton);
+        setDateStartTodayButton.setOnClickListener(setDateStartTodayListener);
+
+        setDateEndButton = (Button) findViewById(R.id.setDateEndButton);
+        setDateEndButton.setOnClickListener(setDateEndListener);
 
         idTextView = (TextView) findViewById(R.id.medIdTextView);
+        dateStartTextView = (TextView) findViewById(R.id.dateStartTextView);
+        dateEndTextView = (TextView) findViewById(R.id.dateEndTextView);
+        startTimeTextView = (TextView) findViewById(R.id.startTimeTextView);
+
         nameEditText = (EditText) findViewById(R.id.medNameEditText);
         amountEditText = (EditText) findViewById(R.id.amountEditText);
         unitEditText = (EditText) findViewById(R.id.unitEditText);
         notesEditText = (EditText) findViewById(R.id.notesEditText);
-        numberDaysEditText = (EditText) findViewById(R.id.numberDaysEditText);
+//        numberDaysEditText = (EditText) findViewById(R.id.numberDaysEditText);
+        occurrencesEditText = (EditText) findViewById(R.id.occurrencesEditText);
+        occurrencesEditText.addTextChangedListener(occurrenceEditTextWatcher);
 
         suToggle = (ToggleButton) findViewById(R.id.suToggle);
         moToggle = (ToggleButton) findViewById(R.id.moToggle);
@@ -87,15 +100,19 @@ public class EditMedicineActivity extends AppCompatActivity {
             MedicineObject medicineObject = MedicineHelper.getMedicine(getBaseContext(), Integer.valueOf(id));
             idTextView.setText(id);
 
+            Log.d(TAG, medicineObject.toString());
+
             EDITING = 1;
             nameEditText.setText(medicineObject.getName());
             amountEditText.setText(String.valueOf(medicineObject.getDosageAmount()));
             unitEditText.setText(medicineObject.getDosageUnit());
-            numberDaysEditText.setText(String.valueOf(medicineObject.getNumberDaysTake()));
             times = medicineObject.getTimes();
-            updateTimesField();
             startDate = medicineObject.getStartDate();
-            updateDateField();
+            endDate = medicineObject.getEndDate();
+            startTime = medicineObject.getStartTime();
+            occurrencesEditText.setText(String.valueOf(medicineObject.getOccurrences()));
+            updateTimesField();
+            updateDateFields();
             notesEditText.setText(medicineObject.getNotes());
             for(String day : medicineObject.getDaysToTake()) {
                 daysToTakeToggles.get(day).setChecked(true);
@@ -103,6 +120,16 @@ public class EditMedicineActivity extends AppCompatActivity {
         } else {
             String id = String.valueOf(MedicineHelper.getNewId(getBaseContext()));
             idTextView.setText(id);
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(System.currentTimeMillis());
+            startDate = calendar.getTime();
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+            endDate = calendar.getTime();
+            calendar.setTimeInMillis(System.currentTimeMillis());
+            startTime = calendar.getTime();
+            updateDateFields();
+            updateTimesField();
         }
     }
 
@@ -112,12 +139,13 @@ public class EditMedicineActivity extends AppCompatActivity {
         boolean dosageAmount = !String.valueOf(amountEditText.getText().toString()).equals("");
         boolean dosageUnit = !unitEditText.getText().toString().equals("");
         boolean daysToTake = !MedicineHelper.sortDaysToTake(getDaysToTake()).isEmpty();
-        boolean numberDaysTake = !numberDaysEditText.getText().toString().equals("");
         boolean timesBoolean = !times.isEmpty();
         boolean startDateBoolean = startDate != null;
         boolean notes = !notesEditText.getText().toString().equals("");
+        boolean occurrences = !occurrencesEditText.getText().toString().equals("");
+        boolean dateCorrect = startDate.getTime() < endDate.getTime();
 
-        return id && name && numberDaysTake && dosageAmount && dosageUnit && daysToTake && timesBoolean && startDateBoolean && notes;
+        return id && name && dosageAmount && dosageUnit && daysToTake && timesBoolean && startDateBoolean && notes && occurrences && dateCorrect;
     }
 
     public MedicineObject buildMedicineObject() {
@@ -125,11 +153,14 @@ public class EditMedicineActivity extends AppCompatActivity {
         String name = nameEditText.getText().toString();
         Float dosageAmount = Float.valueOf(amountEditText.getText().toString());
         String dosageUnit = unitEditText.getText().toString();
-        int numberDaysTake = Integer.valueOf(numberDaysEditText.getText().toString());
+//        int numberDaysTake = Integer.valueOf(numberDaysEditText.getText().toString());
         ArrayList<String> daysToTake = MedicineHelper.sortDaysToTake(getDaysToTake());
         String notes = notesEditText.getText().toString();
 
-        return new MedicineObject(id, name, dosageAmount, dosageUnit, numberDaysTake, daysToTake, times, startDate, notes);
+        Calendar startDateCalendar = Calendar.getInstance();
+        startDateCalendar.setTime(startDate);
+
+        return new MedicineObject(id, name, dosageAmount, dosageUnit, daysToTake, times, getOccurrences(), startDate, endDate, startTime, notes);
     }
 
     public ArrayList<String> getDaysToTake() {
@@ -143,7 +174,7 @@ public class EditMedicineActivity extends AppCompatActivity {
         return daysToTake;
     }
 
-    View.OnClickListener addTimeListener = new View.OnClickListener() {
+    View.OnClickListener setStartTimeListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             Calendar calendar = Calendar.getInstance();
@@ -152,11 +183,19 @@ public class EditMedicineActivity extends AppCompatActivity {
         }
     };
 
-    View.OnClickListener resetTimeListener = new View.OnClickListener() {
+    View.OnClickListener setTimeNowListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            times.clear();
-            updateTimesField();
+            Calendar calendar = Calendar.getInstance();
+            Calendar calendar2 = Calendar.getInstance();
+            calendar2.setTimeInMillis(System.currentTimeMillis());
+
+            calendar.set(Calendar.HOUR_OF_DAY, calendar2.get(Calendar.HOUR_OF_DAY));
+            calendar.set(Calendar.MINUTE, calendar2.get(Calendar.MINUTE));
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            startTime = calendar.getTime();
+            updateTimes();
         }
     };
 
@@ -166,60 +205,158 @@ public class EditMedicineActivity extends AppCompatActivity {
             Calendar calendar = Calendar.getInstance();
             calendar.set(Calendar.HOUR_OF_DAY, hour);
             calendar.set(Calendar.MINUTE, minute);
-            times.add(calendar);
-            updateTimesField();
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            startDate = calendar.getTime();
+            updateTimes();
         }
     };
 
+    public int getOccurrences() {
+        if(occurrencesEditText.getText().toString().length() <= 0) {
+            occurrencesEditText.setText("1");
+        }
+        return Integer.valueOf(occurrencesEditText.getText().toString());
+    }
+
+    TextWatcher occurrenceEditTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            if(!s.toString().equals(""))
+                updateTimes();
+        }
+    };
+
+    public void updateTimes() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startDate);
+
+        Calendar calendarEOD = Calendar.getInstance();
+        calendarEOD.set(Calendar.HOUR_OF_DAY, 0);
+        calendarEOD.set(Calendar.MINUTE, 0);
+        calendarEOD.set(Calendar.SECOND, 0);
+        calendarEOD.set(Calendar.MILLISECOND, 0);
+        calendarEOD.add(Calendar.DAY_OF_MONTH, 1);
+
+        long eodMillis = calendarEOD.getTimeInMillis();
+        long calendarMillis = calendar.getTimeInMillis();
+        long delayMillis = eodMillis - calendarMillis;
+
+        DateFormat dateFormat = DateFormat.getTimeInstance();
+
+        Log.d(TAG, String.format("%s %s", dateFormat.format(calendar.getTime()), dateFormat.format(calendarEOD.getTime())));
+        Log.d(TAG, String.format("%s %s %s", eodMillis, calendarMillis, delayMillis));
+
+        startTime = calendar.getTime();
+
+        int occurrences = getOccurrences();
+        long delayMillisDivided = delayMillis / occurrences;
+        Log.d(TAG, String.format("Delay: %s", dateFormat.format(new Date(delayMillis))));
+        Log.d(TAG, String.format("Delay Divided: %s", dateFormat.format(new Date(delayMillisDivided))));
+
+        times.clear();
+        for(int i = 1; i <= occurrences; i++) {
+            Log.d(TAG, String.format("Time: %s", dateFormat.format(calendar.getTime())));
+            Calendar calendarTemp = calendar.getInstance();
+            calendarTemp.setTime(calendar.getTime());
+            times.add(calendarTemp);
+            Date date = calendar.getTime();
+            calendar.setTimeInMillis(date.getTime() + delayMillisDivided);
+        }
+        updateTimesField();
+    }
+
     public void updateTimesField() {
+        DateFormat dateFormat = DateFormat.getTimeInstance(DateFormat.SHORT);
         if(times.isEmpty()) {
             timesTextView.setText("No times added.");
         } else {
             StringBuilder stringBuilder = new StringBuilder();
             for(Calendar time : times) {
-                DateFormat dateFormat = DateFormat.getTimeInstance(DateFormat.SHORT);
                 stringBuilder.append(dateFormat.format(time.getTime()) + " ");
 //                String text = String.format("%s:%s", time.get(Calendar.HOUR), time.get(Calendar.MINUTE));
 //                stringBuilder.append(text);
             }
             timesTextView.setText(stringBuilder.toString());
         }
+        startTimeTextView.setText(dateFormat.format(startTime));
     }
 
-    View.OnClickListener setDateListener = new View.OnClickListener() {
+    View.OnClickListener setDateStartListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(System.currentTimeMillis());
-            DatePickerDialog.newInstance(dateSetListener, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show(getFragmentManager(), "datePicker");
+            DatePickerDialog.newInstance(dateStartSetListener, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show(getFragmentManager(), "datePicker");
         }
     };
 
-    View.OnClickListener setDateTodayListener = new View.OnClickListener() {
+    View.OnClickListener setDateStartTodayListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(System.currentTimeMillis());
-            startDate = calendar;
-            updateDateField();
+            startDate = calendar.getTime();
+            updateDateFields();
         }
     };
 
-    DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
+    View.OnClickListener setDateEndListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(System.currentTimeMillis());
+            DatePickerDialog.newInstance(dateEndSetListener, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show(getFragmentManager(), "datePicker");
+        }
+    };
+
+    View.OnClickListener setDateEndTodayListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(System.currentTimeMillis());
+            endDate = calendar.getTime();
+            updateDateFields();
+        }
+    };
+
+    DatePickerDialog.OnDateSetListener dateStartSetListener = new DatePickerDialog.OnDateSetListener() {
         @Override
         public void onDateSet(DatePickerDialog datePickerDialog, int year, int month, int day) {
             Calendar calendar = Calendar.getInstance();
             calendar.set(Calendar.YEAR, year);
             calendar.set(Calendar.MONTH, month);
             calendar.set(Calendar.DAY_OF_MONTH, day);
-            startDate = calendar;
-            updateDateField();
+            startDate = calendar.getTime();
+            updateDateFields();
         }
     };
 
-    public void updateDateField() {
+    DatePickerDialog.OnDateSetListener dateEndSetListener = new DatePickerDialog.OnDateSetListener() {
+        @Override
+        public void onDateSet(DatePickerDialog datePickerDialog, int year, int month, int day) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.YEAR, year);
+            calendar.set(Calendar.MONTH, month);
+            calendar.set(Calendar.DAY_OF_MONTH, day);
+            endDate = calendar.getTime();
+            updateDateFields();
+        }
+    };
+
+    public void updateDateFields() {
         DateFormat dateFormat = DateFormat.getDateInstance();
-        dateTextView.setText(dateFormat.format(startDate.getTime()));
+        dateStartTextView.setText(dateFormat.format(startDate.getTime()));
+        dateEndTextView.setText(dateFormat.format(endDate.getTime()));
     }
 
     @Override

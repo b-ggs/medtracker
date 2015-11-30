@@ -2,6 +2,7 @@ package com.medtracker.medtracker;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Created by boggs on 11/22/15.
@@ -11,21 +12,25 @@ public class MedicineObject {
     private String name;
     private float dosageAmount;
     private String dosageUnit;
-    private int numberDaysTake;
     private ArrayList<String> daysToTake;
     private ArrayList<Calendar> times;
-    private Calendar startDate;
+    private int occurrences;
+    private Date startDate;
+    private Date endDate;
+    private Date startTime;
     private String notes;
 
-    public MedicineObject(int id, String name, float dosageAmount, String dosageUnit, int numberDaysTake, ArrayList<String> daysToTake, ArrayList<Calendar> times, Calendar startDate, String notes) {
+    public MedicineObject(int id, String name, float dosageAmount, String dosageUnit, ArrayList<String> daysToTake, ArrayList<Calendar> times, int occurrences, Date startDate, Date endDate, Date startTime, String notes) {
         this.id = id;
         this.name = name;
         this.dosageAmount = dosageAmount;
         this.dosageUnit = dosageUnit;
-        this.numberDaysTake = numberDaysTake;
         this.daysToTake = daysToTake;
         this.times = times;
+        this.occurrences = occurrences;
         this.startDate = startDate;
+        this.endDate = endDate;
+        this.startTime = startTime;
         this.notes = notes;
     }
 
@@ -77,12 +82,28 @@ public class MedicineObject {
         this.times = times;
     }
 
-    public Calendar getStartDate() {
+    public int getOccurrences() {
+        return occurrences;
+    }
+
+    public void setOccurrences(int occurrences) {
+        this.occurrences = occurrences;
+    }
+
+    public Date getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Calendar startDate) {
+    public void setStartDate(Date startDate) {
         this.startDate = startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
     }
 
     public String getNotes() {
@@ -93,12 +114,12 @@ public class MedicineObject {
         this.notes = notes;
     }
 
-    public int getNumberDaysTake() {
-        return numberDaysTake;
+    public Date getStartTime() {
+        return startTime;
     }
 
-    public void setNumberDaysTake(int numberDaysTake) {
-        this.numberDaysTake = numberDaysTake;
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
     }
 
     public String toString() {
@@ -109,7 +130,9 @@ public class MedicineObject {
         stringBuilder.append(String.format("dosageAmount %s\n", getDosageAmount()));
         stringBuilder.append(String.format("dosageUnit %s\n", getDosageUnit()));
         stringBuilder.append(String.format("times %s\n", getTimes()));
+        stringBuilder.append(String.format("occurrences %s\n", getOccurrences()));
         stringBuilder.append(String.format("startDate %s\n", getStartDate()));
+        stringBuilder.append(String.format("endDate %s\n", getEndDate()));
         stringBuilder.append(String.format("daysToTake %s\n", getDaysToTake()));
         stringBuilder.append(String.format("notes %s\n", getNotes()));
         return stringBuilder.toString();

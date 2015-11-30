@@ -17,7 +17,7 @@ import java.util.Date;
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TAG = "DatabaseHelper";
 
-    public static final int DATABASE_VERSION = 6;
+    public static final int DATABASE_VERSION = 9;
     public static final String DATABASE_NAME = "MedTracker.db";
 
     public static final String MEDICINE_TABLE = "medicine";
@@ -25,10 +25,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String MEDICINE_COLUMN_NAME = "name";
     public static final String MEDICINE_COLUMN_DOSAGE_AMOUNT = "dosageAmount";
     public static final String MEDICINE_COLUMN_DOSAGE_UNIT = "dosageUnit";
-    public static final String MEDICINE_COLUMN_NUMBER_DAYS_TAKE = "numberDaysToTake";
     public static final String MEDICINE_COLUMN_DAYS_TO_TAKE = "daysToTake";
     public static final String MEDICINE_COLUMN_TIMES = "times";
+    public static final String MEDICINE_COLUMN_OCCURRENCES = "occurrences";
     public static final String MEDICINE_COLUMN_START_DATE = "starting";
+    public static final String MEDICINE_COLUMN_END_DATE = "ending";
+    public static final String MEDICINE_COLUMN_START_TIME = "startTime";
     public static final String MEDICINE_COLUMN_NOTES = "notes";
 
     public static final String DATE_TABLE = "date";
@@ -72,10 +74,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         sql.append(String.format("%s %s, ", MEDICINE_COLUMN_NAME, "TEXT"));
         sql.append(String.format("%s %s, ", MEDICINE_COLUMN_DOSAGE_AMOUNT, "TEXT"));
         sql.append(String.format("%s %s, ", MEDICINE_COLUMN_DOSAGE_UNIT, "TEXT"));
-        sql.append(String.format("%s %s, ", MEDICINE_COLUMN_NUMBER_DAYS_TAKE, "TEXT"));
-        sql.append(String.format("%s %s, ", MEDICINE_COLUMN_TIMES, "TEXT"));
         sql.append(String.format("%s %s, ", MEDICINE_COLUMN_DAYS_TO_TAKE, "TEXT"));
+        sql.append(String.format("%s %s, ", MEDICINE_COLUMN_TIMES, "TEXT"));
+        sql.append(String.format("%s %s, ", MEDICINE_COLUMN_OCCURRENCES, "TEXT"));
         sql.append(String.format("%s %s, ", MEDICINE_COLUMN_START_DATE, "TEXT"));
+        sql.append(String.format("%s %s, ", MEDICINE_COLUMN_END_DATE, "TEXT"));
+        sql.append(String.format("%s %s, ", MEDICINE_COLUMN_START_TIME, "TEXT"));
         sql.append(String.format("%s %s ", MEDICINE_COLUMN_NOTES, "TEXT"));
         sql.append(")");
         Log.d(TAG, String.format("Exec: %s", sql.toString()));
@@ -128,20 +132,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String name = medicineObject.getName();
         String dosageAmount = String.valueOf(medicineObject.getDosageAmount());
         String dosageUnit = String.valueOf(medicineObject.getDosageUnit());
-        String numberDaysTake = String.valueOf(medicineObject.getNumberDaysTake());
+        String occurrences = String.valueOf(medicineObject.getOccurrences());
         String times = MedicineHelper.formatTimesForDatabase(medicineObject);
         String daysToTake = MedicineHelper.formatDaysToTakeForDatabase(medicineObject);
         String startDate = MedicineHelper.formatStartDateForDatabase(medicineObject);
+        String endDate = MedicineHelper.formatEndDateForDatabase(medicineObject);
+        String startTime = MedicineHelper.formatStartTimeForDatabase(medicineObject);
         String notes = medicineObject.getNotes();
 
         values.put(MEDICINE_COLUMN_ID, id);
         values.put(MEDICINE_COLUMN_NAME, name);
         values.put(MEDICINE_COLUMN_DOSAGE_AMOUNT, dosageAmount);
         values.put(MEDICINE_COLUMN_DOSAGE_UNIT, dosageUnit);
-        values.put(MEDICINE_COLUMN_TIMES, times);
-        values.put(MEDICINE_COLUMN_NUMBER_DAYS_TAKE, numberDaysTake);
         values.put(MEDICINE_COLUMN_DAYS_TO_TAKE, daysToTake);
+        values.put(MEDICINE_COLUMN_TIMES, times);
+        values.put(MEDICINE_COLUMN_OCCURRENCES, occurrences);
         values.put(MEDICINE_COLUMN_START_DATE, startDate);
+        values.put(MEDICINE_COLUMN_END_DATE, endDate);
+        values.put(MEDICINE_COLUMN_START_TIME, startTime);
         values.put(MEDICINE_COLUMN_NOTES, notes);
 
         db.insert(MEDICINE_TABLE, null, values);
@@ -196,11 +204,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         MEDICINE_COLUMN_NAME,
                         MEDICINE_COLUMN_DOSAGE_AMOUNT,
                         MEDICINE_COLUMN_DOSAGE_UNIT,
-                        MEDICINE_COLUMN_TIMES,
                         MEDICINE_COLUMN_DAYS_TO_TAKE,
+                        MEDICINE_COLUMN_TIMES,
+                        MEDICINE_COLUMN_OCCURRENCES,
                         MEDICINE_COLUMN_START_DATE,
-                        MEDICINE_COLUMN_NOTES,
-                        MEDICINE_COLUMN_NUMBER_DAYS_TAKE
+                        MEDICINE_COLUMN_END_DATE,
+                        MEDICINE_COLUMN_START_TIME,
+                        MEDICINE_COLUMN_NOTES
                 },
                 null, // id = ?
                 null,
@@ -215,13 +225,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String name = cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_NAME));
                 float dosageAmount = Float.valueOf(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_DOSAGE_AMOUNT)));
                 String dosageUnit = cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_DOSAGE_UNIT));
-                int numberDaysTake = Integer.valueOf(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_NUMBER_DAYS_TAKE)));
                 ArrayList<Calendar> times = MedicineHelper.formatTimesForObject(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_TIMES)));
-                Calendar startDate = MedicineHelper.formatStartDateForObject(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_START_DATE)));
+                int occurrences = Integer.valueOf(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_OCCURRENCES)));
+                Date startDate = MedicineHelper.formatStartDateForObject(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_START_DATE)));
+                Date endDate = MedicineHelper.formatEndDateForObject(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_END_DATE)));
+                Date startTime = MedicineHelper.formatEndDateForObject(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_START_TIME)));
                 ArrayList<String> daysToTake = MedicineHelper.formatDaysToTakeForObject(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_DAYS_TO_TAKE)));
                 String notes = cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_NOTES));
 
-                MedicineObject medicineObject = new MedicineObject(id, name, dosageAmount, dosageUnit, numberDaysTake, daysToTake, times, startDate, notes);
+                MedicineObject medicineObject = new MedicineObject(id, name, dosageAmount, dosageUnit, daysToTake, times, occurrences, startDate, endDate, startTime, notes);
                 medicineObjects.add(medicineObject);
             } while(cursor.moveToNext());
         }
@@ -244,11 +256,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         MEDICINE_COLUMN_NAME,
                         MEDICINE_COLUMN_DOSAGE_AMOUNT,
                         MEDICINE_COLUMN_DOSAGE_UNIT,
-                        MEDICINE_COLUMN_TIMES,
                         MEDICINE_COLUMN_DAYS_TO_TAKE,
+                        MEDICINE_COLUMN_TIMES,
+                        MEDICINE_COLUMN_OCCURRENCES,
                         MEDICINE_COLUMN_START_DATE,
-                        MEDICINE_COLUMN_NOTES,
-                        MEDICINE_COLUMN_NUMBER_DAYS_TAKE
+                        MEDICINE_COLUMN_END_DATE,
+                        MEDICINE_COLUMN_START_TIME,
+                        MEDICINE_COLUMN_NOTES
                 },
                 String.format("%s=?", MEDICINE_COLUMN_ID), // id = ?
                 new String[] { String.valueOf(idQuery) },
@@ -263,13 +277,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String name = cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_NAME));
                 float dosageAmount = Float.valueOf(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_DOSAGE_AMOUNT)));
                 String dosageUnit = cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_DOSAGE_UNIT));
-                int numberDaysTake = Integer.valueOf(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_NUMBER_DAYS_TAKE)));
                 ArrayList<Calendar> times = MedicineHelper.formatTimesForObject(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_TIMES)));
-                Calendar startDate = MedicineHelper.formatStartDateForObject(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_START_DATE)));
+                int occurrences = Integer.valueOf(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_OCCURRENCES)));
+                Date startDate = MedicineHelper.formatStartDateForObject(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_START_DATE)));
+                Date endDate = MedicineHelper.formatEndDateForObject(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_END_DATE)));
+                Date startTime = MedicineHelper.formatEndDateForObject(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_START_TIME)));
                 ArrayList<String> daysToTake = MedicineHelper.formatDaysToTakeForObject(cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_DAYS_TO_TAKE)));
                 String notes = cursor.getString(cursor.getColumnIndex(MEDICINE_COLUMN_NOTES));
 
-                MedicineObject medicineObject = new MedicineObject(id, name, dosageAmount, dosageUnit, numberDaysTake, daysToTake, times, startDate, notes);
+                MedicineObject medicineObject = new MedicineObject(id, name, dosageAmount, dosageUnit, daysToTake, times, occurrences, startDate, endDate, startTime, notes);
                 medicineObjects.add(medicineObject);
             } while(cursor.moveToNext());
         }

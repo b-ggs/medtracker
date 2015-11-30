@@ -168,20 +168,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Number of Days to Take:"
-            android:id="@+id/textView3" />
-
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/numberDaysEditText"
-            android:layout_gravity="center_horizontal"
-            android:numeric="integer" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Times:"
             android:id="@+id/textView6" />
 
@@ -189,29 +175,52 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="No times added."
+            android:text="Time placeholder"
             android:id="@+id/timesTextView" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Start Time:"
+            android:id="@+id/textView8" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/startTimeTextView"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Time placeholder" />
 
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal">
+            android:layout_gravity="center_horizontal" >
 
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Add Time"
-                android:id="@+id/addTimeButton"
-                android:layout_weight="0.5" />
+                android:text="Set Start Time"
+                android:layout_weight="1.0"
+                android:id="@+id/setStartTimeButton" />
 
-            <Button
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Reset Times"
-                android:id="@+id/resetTimeButton"
-                android:layout_weight="0.5" />
         </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Occurrences per day:"
+            android:id="@+id/textView3" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/occurrencesEditText"
+            android:layout_gravity="center_horizontal"
+            android:numeric="integer"
+            android:text="1" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -225,7 +234,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="No date set."
-            android:id="@+id/dateTextView" />
+            android:id="@+id/dateStartTextView" />
 
         <LinearLayout
             android:orientation="horizontal"
@@ -236,16 +245,45 @@
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Set Date"
-                android:id="@+id/setDateButton"
+                android:text="Set Start Date"
+                android:id="@+id/setDateStartButton"
                 android:layout_weight="0.5" />
 
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Set to Today"
-                android:id="@+id/setDateTodayButton"
+                android:id="@+id/setDateStartTodayButton"
                 android:layout_weight="0.5" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="End Date:"
+            android:id="@+id/textView10" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="No date set."
+            android:id="@+id/dateEndTextView" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal" >
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Set End Date"
+                android:id="@+id/setDateEndButton"
+                android:layout_weight="1" />
+
         </LinearLayout>
 
         <TextView

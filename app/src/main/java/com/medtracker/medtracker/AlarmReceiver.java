@@ -29,7 +29,11 @@ public class AlarmReceiver extends BroadcastReceiver {
             String dosageAmount = extras.getString("dosageAmount");
             String dosageUnit = extras.getString("dosageUnit");
             int requestCode = extras.getInt("requestCode");
-            executeNotification(context, medicineName, time, dosageAmount, dosageUnit, requestCode);
+            Date date = new Date(System.currentTimeMillis());
+            DateFormat dateFormat = DateFormat.getTimeInstance(DateFormat.SHORT);
+            String timeCompare = dateFormat.format(date);
+            if(time.equals(timeCompare))
+                executeNotification(context, medicineName, time, dosageAmount, dosageUnit, requestCode);
         } else {
             Toast.makeText(context, "null extras", Toast.LENGTH_SHORT).show();
         }
